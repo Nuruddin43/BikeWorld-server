@@ -28,6 +28,7 @@ async function run() {
     await client.connect();
     console.log("DB Connected");
     const productCollection = client.db("ctgBike").collection("products");
+    const orderCollection = client.db("ctgBike").collection("order");
 
     app.get("/product", async (req, res) => {
       const query = {};
@@ -41,6 +42,13 @@ async function run() {
       const query = { _id: ObjectId(id) };
       const product = await productCollection.findOne(query);
       res.send(product);
+    });
+
+    // Order
+    app.post("/order", async (req, res) => {
+      const order = req.body;
+      const result = await orderCollection.insertOne(order);
+      res.send(result);
     });
   } finally {
   }
