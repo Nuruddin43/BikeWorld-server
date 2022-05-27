@@ -24,13 +24,51 @@ async function run() {
     const productCollection = client.db("ctgBike").collection("products")
     const orderCollection = client.db("ctgBike").collection("order")
     const userCollection = client.db("ctgBike").collection("users")
+    const reviewCollection = client.db("ctgBike").collection("review")
+    const newProductCollection = client.db("ctgBike").collection("newProduct")
 
+    // NEW PRODUCT API
+    app.get("/newProduct", async (req, res) => {
+      const query = {}
+      const cursor = newProductCollection.find(query)
+      const newProducts = await cursor.toArray()
+      res.send(newProducts)
+    })
+    app.post("/newProduct", async (req, res) => {
+      const newProduct = req.body
+      const result = await newProductCollection.insertOne(newProduct)
+      res.send(result)
+    })
+    app.delete("/newProduct/:id", async (req, res) => {
+      const id = req.params.id.trim()
+      const query = { _id: ObjectId(id) }
+      const result = await newProductCollection.deleteOne(query)
+      res.send(result)
+    })
+
+    // Review
+
+    app.post("/review", async (req, res) => {
+      const review = req.body
+      const result = await reviewCollection.insertOne(review)
+      res.send(result)
+    })
+
+    app.get("/review", async (req, res) => {
+      const query = {}
+      const cursor = reviewCollection.find(query)
+      const reviews = await cursor.toArray()
+      res.send(reviews)
+    })
+
+    // GET ALL USERS
     app.get("/user", async (req, res) => {
       const users = await userCollection.find().toArray()
       res.send(users)
     })
 
-    app.put("/user/:admin/:email", async (req, res) => {
+    // Make Admin
+    app.put("/user/admin/:email", async (req, res) => {
       const email = req.params.email
       const filter = { email: email }
       const updateDoc = {
@@ -39,6 +77,17 @@ async function run() {
       const result = await userCollection.updateOne(filter, updateDoc)
       res.send(result)
     })
+
+    // GET ADMIN BY EMAIL
+
+    app.get("/admin/:email", async (req, res) => {
+      const email = req.params.email
+      const user = await userCollection.findOne({ email: email })
+      const isAdmin = user.role === "admin"
+      res.send({ admin: isAdmin })
+    })
+
+    // PUT USERS API
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email
       const user = req.body
@@ -58,7 +107,13 @@ async function run() {
       const products = await cursor.toArray()
       res.send(products)
     })
-
+    app.delete("/product/:id", async (req, res) => {
+      const id = req.params.id.trim()
+      const query = { _id: ObjectId(id) }
+      const result = await productCollection.deleteOne(query)
+      res.send(result)
+    })
+    // API ORDER BY ID
     app.get("/purchase/:id", async (req, res) => {
       const id = req.params.id
       const query = { _id: ObjectId(id) }
@@ -76,6 +131,13 @@ async function run() {
     app.get("/order", async (req, res) => {
       const email = req.query.email
       const query = { email: email }
+      const cursor = orderCollection.find(query)
+      const orders = await cursor.toArray()
+      res.send(orders)
+    })
+
+    app.get("/order", async (req, res) => {
+      const query = {}
       const cursor = orderCollection.find(query)
       const orders = await cursor.toArray()
       res.send(orders)
