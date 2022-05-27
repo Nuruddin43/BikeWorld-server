@@ -115,7 +115,7 @@ async function run() {
     })
     // API ORDER BY ID
     app.get("/purchase/:id", async (req, res) => {
-      const id = req.params.id
+      const id = req.params.id.trim()
       const query = { _id: ObjectId(id) }
       const product = await productCollection.findOne(query)
       res.send(product)
