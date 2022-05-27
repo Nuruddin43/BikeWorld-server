@@ -135,10 +135,16 @@ async function run() {
       const orders = await cursor.toArray()
       res.send(orders)
     })
+    app.get("/booking/:id", async (req, res) => {
+      const id = req.params.id
+      const query = { _id: ObjectId(id) }
+      const order = await orderCollection.findOne(query)
+      res.send(order)
+    })
 
     app.get("/order", async (req, res) => {
-      const query = {}
-      const cursor = orderCollection.find(query)
+      const query = req.body
+      const cursor = orderCollection.findOne(query)
       const orders = await cursor.toArray()
       res.send(orders)
     })
