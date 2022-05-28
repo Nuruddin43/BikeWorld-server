@@ -27,6 +27,7 @@ async function run() {
     const userCollection = client.db("ctgBike").collection("users")
     const reviewCollection = client.db("ctgBike").collection("review")
     const newProductCollection = client.db("ctgBike").collection("newProduct")
+    const paymentCollection = client.db("ctgBike").collection("payments")
 
     app.post("/create-payment-intent", async (req, res) => {
       const product = req.body
@@ -142,6 +143,21 @@ async function run() {
       const order = req.body
       const result = await orderCollection.insertOne(order)
       res.send(result)
+    })
+
+    app.patch("/order/:id", async (req, res) => {
+      const id = req.params.id
+      const payment = req.body
+      const filter = { _id: ObjectId(id) }
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      }
+      const result = await paymentCollection.insertOne(payment)
+      const updatedOrder = await orderCollection.updateOne(filter, updatedDoc)
+      res.send(updatedDoc)
     })
 
     app.get("/order", async (req, res) => {
