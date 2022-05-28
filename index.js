@@ -28,6 +28,7 @@ async function run() {
     const reviewCollection = client.db("ctgBike").collection("review")
     const newProductCollection = client.db("ctgBike").collection("newProduct")
     const paymentCollection = client.db("ctgBike").collection("payments")
+    const profileCollection = client.db("ctgBike").collection("profile")
 
     app.post("/create-payment-intent", async (req, res) => {
       const product = req.body
@@ -157,7 +158,7 @@ async function run() {
       }
       const result = await paymentCollection.insertOne(payment)
       const updatedOrder = await orderCollection.updateOne(filter, updatedDoc)
-      res.send(updatedDoc)
+      res.send(updatedOrder)
     })
 
     app.get("/order", async (req, res) => {
@@ -183,6 +184,19 @@ async function run() {
       const cursor = orderCollection.find(query)
       const orders = await cursor.toArray()
       res.send(orders)
+    })
+
+    // MyProfile
+    app.post("/myprofile", async (req, res) => {
+      const profile = req.body
+      const result = await profileCollection.insertOne(profile)
+      res.send(result)
+    })
+    app.get("/myprofile", async (req, res) => {
+      const query = {}
+      const cursor = profileCollection.find(query)
+      const profiles = await cursor.toArray()
+      res.send(profiles)
     })
   } finally {
   }
