@@ -5,6 +5,7 @@ require("dotenv").config()
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb")
 const port = process.env.PORT || 5000
 const app = express()
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
 
 // middleware
 app.use(cors())
@@ -26,6 +27,20 @@ async function run() {
     const userCollection = client.db("ctgBike").collection("users")
     const reviewCollection = client.db("ctgBike").collection("review")
     const newProductCollection = client.db("ctgBike").collection("newProduct")
+
+    app.post("/create-payment-intent", async (req, res) => {
+      const product = req.body
+      const price = product.price
+      const amount = price * 100
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      })
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      })
+    })
 
     // NEW PRODUCT API
     app.get("/newProduct", async (req, res) => {
@@ -122,6 +137,7 @@ async function run() {
     })
 
     // Order
+
     app.post("/order", async (req, res) => {
       const order = req.body
       const result = await orderCollection.insertOne(order)
@@ -131,20 +147,24 @@ async function run() {
     app.get("/order", async (req, res) => {
       const email = req.query.email
       const query = { email: email }
-      const cursor = orderCollection.find(query)
-      const orders = await cursor.toArray()
+      const orders = await orderCollection.find(query).toArray()
       res.send(orders)
     })
-    app.get("/booking/:id", async (req, res) => {
-      const id = req.params.id
+    // app.delete("/order/:id", async (req, res) => {
+    //   const id = req.params.id.trim()
+    //   const query = { _id: ObjectId(id) }
+    //   const order = await orderCollection.deleteOne(query)
+    //   res.send(order)
+    // })
+    app.get("/order/:id", async (req, res) => {
+      const id = req.params.id.trim()
       const query = { _id: ObjectId(id) }
       const order = await orderCollection.findOne(query)
       res.send(order)
     })
-
     app.get("/order", async (req, res) => {
-      const query = req.body
-      const cursor = orderCollection.findOne(query)
+      const query = {}
+      const cursor = orderCollection.find(query)
       const orders = await cursor.toArray()
       res.send(orders)
     })
